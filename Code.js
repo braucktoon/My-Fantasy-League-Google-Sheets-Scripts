@@ -7,9 +7,29 @@ function onOpen() {
     {name: 'Retrieve Free Agent Data', functionName: 'getFreeAgentData_'},
     {name: 'Retrieve All Player Data', functionName: 'getAllPlayerData_'},
     {name: 'Retrieve Salary Adjustment Data', functionName: 'getSalaryAdjustmentData_'},
+    {name: 'Retrieve All Data', functionName: 'getAllData_'},
     
   ];
   spreadsheet.addMenu('MFL', menuItems);
+}
+
+function retrieveJsonData_(url){
+  var res = UrlFetchApp.fetch(url);
+  var content = res.getContentText();
+  var json = JSON.parse(content);
+  
+  return json;
+}
+
+
+function getAllData_(){
+
+  getAllPlayerData("https://www75.myfantasyleague.com/2018/export?TYPE=players&DETAILS=&SINCE=&PLAYERS=&JSON=1");
+  getFreeAgentData("http://www76.myfantasyleague.com/2018/export?TYPE=freeAgents&L=42427&APIKEY=&POSITION=&JSON=1");
+  getLeagueData("http://www76.myfantasyleague.com/2018/export?TYPE=league&L=42427&APIKEY=&JSON=1");
+  getRosterData("http://www76.myfantasyleague.com/2018/export?TYPE=rosters&L=42427&APIKEY=&FRANCHISE=&JSON=1");
+  getSalaryAdjustmentData("http://www76.myfantasyleague.com/2017/export?TYPE=salaryAdjustments&L=42427&APIKEY=&JSON=1");
+  
 }
 
 function getRosterData_(){
@@ -26,9 +46,7 @@ function getRosterData_(){
 function getRosterData(url){
   
   Logger.log("funcBegin");
-  var res = UrlFetchApp.fetch(url);
-  var content = res.getContentText();
-  var json = JSON.parse(content);
+  var json = retrieveJsonData_(url);
   var data = [];
   var dataDetails = [];
   
@@ -52,7 +70,7 @@ function getRosterData(url){
   
   data = dataDetails;
   
-  var sheet = SpreadsheetApp.getActiveSheet();
+  var sheet = SpreadsheetApp.getActive().getSheetByName("Rosters");
   //setting range in sheet with sepecific coordinate because functions will set in the sheet in other columns below
   var range = sheet.getRange(1,5,data.length, data[0].length);
   sheet.setActiveRange(range).setValues(data);
@@ -106,9 +124,7 @@ function getLeagueData_(){
 function getLeagueData(url){
   
   Logger.log("funcBegin");
-  var res = UrlFetchApp.fetch(url);
-  var content = res.getContentText();
-  var json = JSON.parse(content);
+  var json = retrieveJsonData_(url);
   var data = [];
   var dataDetails = [];
   
@@ -124,7 +140,7 @@ function getLeagueData(url){
   
   data = dataDetails;
   
-  var sheet = SpreadsheetApp.getActiveSheet();
+  var sheet = SpreadsheetApp.getActive().getSheetByName("Bid Sheet");
   //setting range in sheet with sepecific coordinate because functions will be used in the sheet in other columns 
   /*TODO: write functions with scripts so we don't have to do this.
   */
@@ -151,9 +167,7 @@ function getFreeAgentData_(){
 function getFreeAgentData(url){
   
   Logger.log("funcBegin");
-  var res = UrlFetchApp.fetch(url);
-  var content = res.getContentText();
-  var json = JSON.parse(content);
+  var json = retrieveJsonData_(url);
   var data = [];
   var dataDetails = [];
   
@@ -169,7 +183,7 @@ function getFreeAgentData(url){
   
   data = dataDetails;
  
-  var sheet = SpreadsheetApp.getActiveSheet();
+  var sheet = SpreadsheetApp.getActive().getSheetByName("FreeAgents");
   //setting specific range for salary adjusment data as formulas will be set to other columns below.
   var range = sheet.getRange(1,1,data.length, data[0].length);
   sheet.setActiveRange(range).setValues(data);
@@ -222,9 +236,7 @@ function getAllPlayerData_(){
 function getAllPlayerData(url){
   
   Logger.log("funcBegin");
-  var res = UrlFetchApp.fetch(url);
-  var content = res.getContentText();
-  var json = JSON.parse(content);
+  var json = retrieveJsonData_(url);
   var data = [];
   var dataDetails = [];
   
@@ -243,7 +255,7 @@ function getAllPlayerData(url){
   
   data = dataDetails;
   
-  var sheet = SpreadsheetApp.getActiveSheet();
+  var sheet = SpreadsheetApp.getActive().getSheetByName("AllPlayers");
   var range = sheet.getRange(1,1,data.length, data[0].length);
   sheet.setActiveRange(range).setValues(data);
   
@@ -256,8 +268,7 @@ function getAllPlayerData(url){
 
 function getSalaryAdjustmentData_(){
   
-  var url = "http://www76.myfantasyleague.com/2017/export?TYPE=salaryAdjustments&L=42427&APIKEY=&JSON=1";
-  getSalaryAdjustmentData(url);
+  getSalaryAdjustmentData("http://www76.myfantasyleague.com/2017/export?TYPE=salaryAdjustments&L=42427&APIKEY=&JSON=1");
   
 }
 
@@ -270,9 +281,7 @@ function getSalaryAdjustmentData_(){
 function getSalaryAdjustmentData(url){
   
   Logger.log("funcBegin");
-  var res = UrlFetchApp.fetch(url);
-  var content = res.getContentText();
-  var json = JSON.parse(content);
+  var json = retrieveJsonData_(url);
   var data = [];
   var dataDetails = [];
   var salary;
@@ -284,7 +293,7 @@ function getSalaryAdjustmentData(url){
   //push columm headers onto the array
   dataDetails.push(["Franchise ID", "Player", "Current Salary", "Contract Year", "Contract Length"]);
  
-  //this is some made up witch craft I made up because MFL does not normalize the data for the description of the adjustment.  e.g., salary, contract info, length, and current year.  Our league uses this data for as a cap penalay carryover to the next year if the player dropped was under contract.
+  //this is some witch craft I made up because MFL does not normalize the data for the description of the adjustment.  e.g., salary, contract info, length, and current year.  Our league uses this data for as a cap penalay carryover to the next year, if the player dropped was under contract.
   for(var i=0; i<json.salaryAdjustments.salaryAdjustment.length; i++){
 
     var descr = json.salaryAdjustments.salaryAdjustment[i].description;
@@ -358,7 +367,7 @@ function getSalaryAdjustmentData(url){
   
   data = dataDetails;
   
-  var sheet = SpreadsheetApp.getActiveSheet();
+  var sheet = SpreadsheetApp.getActive().getSheetByName("Salary Adjustments");
   //setting specific range for salary adjusment data as formulas will be set to other columns below.
   var range = sheet.getRange(1,2,data.length, data[0].length);
   sheet.setActiveRange(range).setValues(data);
