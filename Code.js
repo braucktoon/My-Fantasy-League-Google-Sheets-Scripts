@@ -53,11 +53,41 @@ function getRosterData(url){
   data = dataDetails;
   
   var sheet = SpreadsheetApp.getActiveSheet();
-  //setting range in sheet with sepecific coordinate because functions will be used in the sheet in other columns 
-  /*TODO: write functions with scripts so we don't have to do this.
-  */
+  //setting range in sheet with sepecific coordinate because functions will set in the sheet in other columns below
   var range = sheet.getRange(1,5,data.length, data[0].length);
   sheet.setActiveRange(range).setValues(data);
+  
+  //set franchise name column header
+  var cell = sheet.getRange("A1");
+  cell.setValue("Franchise Name");
+  //set Player name column formula
+  var cell = sheet.getRange(2,1,data.length-1,1);
+  cell.setFormula("=VLOOKUP(E2,'Bid Sheet'!$C$2:$D$11,2, FALSE)");
+  
+  //se team column header
+  var cell = sheet.getRange("B1");
+  cell.setValue("Player Name");
+  //set team column formula
+  var cell = sheet.getRange(2,2,data.length-1,1);
+  cell.setFormula("=VLOOKUP(F2,AllPlayers!$A:$D,2, FALSE)");
+  
+  //set Position column header
+  var cell = sheet.getRange("C1");
+  cell.setValue("Team");
+  //set Position column formula
+  var cell = sheet.getRange(2,3,data.length-1,1);
+  cell.setFormula("=VLOOKUP(F2,AllPlayers!$A:$D,4, FALSE)");
+  
+  //set Full Player Info column header
+  var cell = sheet.getRange("D1");
+  cell.setValue("Position");
+  //set Full Player Info column formula
+  var cell = sheet.getRange(2,4,data.length-1,1);
+  cell.setFormula("=VLOOKUP(F2,AllPlayers!$A:$D,3, FALSE)");
+  
+  //hiding id columns
+  sheet.hideColumns(5);
+  sheet.hideColumns(6);
   
   Logger.log("funcEnd");
   
@@ -101,6 +131,9 @@ function getLeagueData(url){
   var range = sheet.getRange(1,3,data.length, data[0].length);
   sheet.setActiveRange(range).setValues(data);
   
+  //hiding id column
+  sheet.hideColumns(3);
+  
   Logger.log("funcEnd");
   
 }
@@ -137,11 +170,40 @@ function getFreeAgentData(url){
   data = dataDetails;
  
   var sheet = SpreadsheetApp.getActiveSheet();
-  //setting range in sheet with sepecific coordinate because functions will be used in the sheet in other columns 
-  /*TODO: write functions with scripts so we don't have to do this.
-  */
-  var range = sheet.getRange(1,5,data.length, data[0].length);
+  //setting specific range for salary adjusment data as formulas will be set to other columns below.
+  var range = sheet.getRange(1,1,data.length, data[0].length);
   sheet.setActiveRange(range).setValues(data);
+  
+  //set Player name column header
+  var cell = sheet.getRange("B1");
+  cell.setValue("Player");
+  //set Player name column formula
+  var cell = sheet.getRange(2,2,data.length-1,1);
+  cell.setFormula("=VLOOKUP(A2,AllPlayers!$A:$D,2, FALSE)");
+  
+  //se team column header
+  var cell = sheet.getRange("C1");
+  cell.setValue("Team");
+  //set team column formula
+  var cell = sheet.getRange(2,3,data.length-1,1);
+  cell.setFormula("=VLOOKUP(A2,AllPlayers!$A:$D,4, FALSE)");
+  
+  //set Position column header
+  var cell = sheet.getRange("D1");
+  cell.setValue("Position");
+  //set Position column formula
+  var cell = sheet.getRange(2,4,data.length-1,1);
+  cell.setFormula("=VLOOKUP(A2,AllPlayers!$A:$D,3, FALSE)");
+  
+  //set Full Player Info column header
+  var cell = sheet.getRange("E1");
+  cell.setValue("Full Player Info");
+  //set Full Player Info column formula
+  var cell = sheet.getRange(2,5,data.length-1,1);
+  cell.setFormula("=CONCATENATE(B2, \" \", C2, \" \", D2)");
+  
+  //hiding id column
+  sheet.hideColumns(1);
   
   Logger.log("funcEnd");
     
@@ -182,11 +244,11 @@ function getAllPlayerData(url){
   data = dataDetails;
   
   var sheet = SpreadsheetApp.getActiveSheet();
-  //setting range in sheet with sepecific coordinate because functions will be used in the sheet in other columns 
-  /*TODO: write functions with scripts so we don't have to do this.
-  */
   var range = sheet.getRange(1,1,data.length, data[0].length);
   sheet.setActiveRange(range).setValues(data);
+  
+  //hiding id columns
+  sheet.hideColumns(1);
   
   Logger.log("funcEnd");
   
@@ -297,11 +359,58 @@ function getSalaryAdjustmentData(url){
   data = dataDetails;
   
   var sheet = SpreadsheetApp.getActiveSheet();
-  //setting range in sheet with sepecific coordinate because functions will be used in the sheet in other columns 
-  /*TODO: write functions with scripts so we don't have to do this.
-  */
+  //setting specific range for salary adjusment data as formulas will be set to other columns below.
   var range = sheet.getRange(1,2,data.length, data[0].length);
   sheet.setActiveRange(range).setValues(data);
+  
+  //set Franchise Name column header
+  var cell = sheet.getRange("A1");
+  cell.setValue("Franchise Name");
+  //set Franchise Name column formula
+  var cell = sheet.getRange(2,1,data.length-1,1);
+  cell.setFormula("=VLOOKUP(B2,'Bid Sheet'!$C$2:$D$11,2, FALSE)");
+  
+  //se Contract Years Remaining column header
+  var cell = sheet.getRange("G1");
+  cell.setValue("Contract Years Remaining");
+  //set Contract Years Remaining column formula
+  var cell = sheet.getRange(2,7,data.length-1,1);
+  cell.setFormula("=F2-E2");
+  
+  //set Year 2 Salary column header
+  var cell = sheet.getRange("H1");
+  cell.setValue("Year 2 Salary");
+  //set Year 2 Salary column formula
+  var cell = sheet.getRange(2,8,data.length-1,1);
+  cell.setFormula("=IF((G2>=1),((D2*0.1)+D2),0)");
+  cell.setNumberFormat("00.00");
+  
+  //set Year 3 Salary column header
+  var cell = sheet.getRange("I1");
+  cell.setValue("Year 3 Salary");
+  //set Year 3 Salary column formula
+  var cell = sheet.getRange(2,9,data.length-1,1);
+  cell.setFormula("=IF((G2>=2),((H2*0.1)+H2),0)");
+  cell.setNumberFormat("00.00");
+  
+  //set Year 4 Salary column header
+  var cell = sheet.getRange("J1");
+  cell.setValue("Year 4 Salary");
+  //set Year 4 Salary column formula
+  var cell = sheet.getRange(2,10,data.length-1,1);
+  cell.setFormula("=IF((G2=3),((I2*0.1)+I2),0)");
+  cell.setNumberFormat("00.00");
+  
+  //set adjustment column header
+  var cell = sheet.getRange("K1");
+  cell.setValue("Adjustment");
+  //set adjustment formula
+  var cell = sheet.getRange(2,11,data.length-1,1);
+  cell.setFormula("=SUM(H2,I2,J2)*0.1");
+  cell.setNumberFormat("00.00");
+  
+  //hiding id column
+  sheet.hideColumns(2);
   
   Logger.log("funcEnd");
   
