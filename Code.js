@@ -1,3 +1,6 @@
+/**
+* Creates main menu in google sheets called MFL and under it, 6 menu items are registered.
+*/
 function onOpen() {
   
   var spreadsheet = SpreadsheetApp.getActive();
@@ -7,37 +10,10 @@ function onOpen() {
     {name: 'Retrieve Free Agent Data', functionName: 'getFreeAgentData_'},
     {name: 'Retrieve All Player Data', functionName: 'getAllPlayerData_'},
     {name: 'Retrieve Salary Adjustment Data', functionName: 'getSalaryAdjustmentData_'},
-    {name: 'Retrieve All Data', functionName: 'getAllData_'},
-    
+    {name: 'Retrieve All Data', functionName: 'getAllData_'},   
   ];
   spreadsheet.addMenu('MFL', menuItems);
 }
-
-function retrieveJsonData_(url){
-  var res = UrlFetchApp.fetch(url);
-  var content = res.getContentText();
-  var json = JSON.parse(content);
-  
-  return json;
-}
-
-
-function getAllData_(){
-
-  getAllPlayerData("https://www75.myfantasyleague.com/2018/export?TYPE=players&DETAILS=&SINCE=&PLAYERS=&JSON=1");
-  getFreeAgentData("http://www76.myfantasyleague.com/2018/export?TYPE=freeAgents&L=42427&APIKEY=&POSITION=&JSON=1");
-  getLeagueData("http://www76.myfantasyleague.com/2018/export?TYPE=league&L=42427&APIKEY=&JSON=1");
-  getRosterData("http://www76.myfantasyleague.com/2018/export?TYPE=rosters&L=42427&APIKEY=&FRANCHISE=&JSON=1");
-  getSalaryAdjustmentData("http://www76.myfantasyleague.com/2017/export?TYPE=salaryAdjustments&L=42427&APIKEY=&JSON=1");
-  
-}
-
-function getRosterData_(){
-
-  getRosterData("http://www76.myfantasyleague.com/2018/export?TYPE=rosters&L=42427&APIKEY=&FRANCHISE=&JSON=1");
-  
-}
-
 
 /**
 * Imports roster data from MFL to your spreadsheet Ex: getdata("http://www76.myfantasyleague.com/2018/export?TYPE=rosters&L=42427&APIKEY=&FRANCHISE=&JSON=1")
@@ -45,7 +21,6 @@ function getRosterData_(){
 */
 function getRosterData(url){
   
-  Logger.log("funcBegin");
   var json = retrieveJsonData_(url);
   var data = [];
   var dataDetails = [];
@@ -105,16 +80,7 @@ function getRosterData(url){
   
   //hiding id columns
   sheet.hideColumns(5);
-  sheet.hideColumns(6);
-  
-  Logger.log("funcEnd");
-  
-}
-
-function getLeagueData_(){
-  
-  getLeagueData("http://www76.myfantasyleague.com/2018/export?TYPE=league&L=42427&APIKEY=&JSON=1");
-  
+  sheet.hideColumns(6);  
 }
 
 /**
@@ -122,8 +88,7 @@ function getLeagueData_(){
 * @param url of your JSON data as string
 */
 function getLeagueData(url){
-  
-  Logger.log("funcBegin");
+
   var json = retrieveJsonData_(url);
   var data = [];
   var dataDetails = [];
@@ -149,15 +114,6 @@ function getLeagueData(url){
   
   //hiding id column
   sheet.hideColumns(3);
-  
-  Logger.log("funcEnd");
-  
-}
-
-function getFreeAgentData_(){
-  
-  getFreeAgentData("http://www76.myfantasyleague.com/2018/export?TYPE=freeAgents&L=42427&APIKEY=&POSITION=&JSON=1");
-  
 }
 
 /**
@@ -165,8 +121,7 @@ function getFreeAgentData_(){
 * @param url of your JSON data as string
 */
 function getFreeAgentData(url){
-  
-  Logger.log("funcBegin");
+
   var json = retrieveJsonData_(url);
   var data = [];
   var dataDetails = [];
@@ -217,16 +172,7 @@ function getFreeAgentData(url){
   cell.setFormula("=CONCATENATE(B2, \" \", C2, \" \", D2)");
   
   //hiding id column
-  sheet.hideColumns(1);
-  
-  Logger.log("funcEnd");
-    
-}
-
-function getAllPlayerData_(){
-  
-  getAllPlayerData("https://www75.myfantasyleague.com/2018/export?TYPE=players&DETAILS=&SINCE=&PLAYERS=&JSON=1");
-  
+  sheet.hideColumns(1);    
 }
 
 /**
@@ -234,8 +180,7 @@ function getAllPlayerData_(){
 * @param url of your JSON data as string
 */
 function getAllPlayerData(url){
-  
-  Logger.log("funcBegin");
+
   var json = retrieveJsonData_(url);
   var data = [];
   var dataDetails = [];
@@ -247,7 +192,7 @@ function getAllPlayerData(url){
   
     var pos = json.players.player[i].position;
   
-    //push columm value onto the array, we only want the positions used in our league, so filtering here for them. 
+    //push columm values onto the array, we only want the positions used in our league, so filtering here for them. 
     if (pos == "QB" || pos == "RB" || pos == "WR" || pos == "TE" || pos == "Def" || pos == "PK")
       dataDetails.push([json.players.player[i].id, json.players.player[i].name, json.players.player[i].position, json.players.player[i].team]);
     
@@ -261,26 +206,14 @@ function getAllPlayerData(url){
   
   //hiding id columns
   sheet.hideColumns(1);
-  
-  Logger.log("funcEnd");
-  
 }
-
-function getSalaryAdjustmentData_(){
-  
-  getSalaryAdjustmentData("http://www76.myfantasyleague.com/2017/export?TYPE=salaryAdjustments&L=42427&APIKEY=&JSON=1");
-  
-}
-
-
 
 /**
 * Imports salary adjustment data from MFL to your spreadsheet Ex: getSalaryAdjustmentData("http://www76.myfantasyleague.com/2017/export?TYPE=salaryAdjustments&L=42427&APIKEY=&JSON=1")
-* @param url of your JSON data as string, note, specify current year - 1
+* @param url of your JSON data as string, note, specify previous season.
 */
 function getSalaryAdjustmentData(url){
-  
-  Logger.log("funcBegin");
+
   var json = retrieveJsonData_(url);
   var data = [];
   var dataDetails = [];
@@ -293,20 +226,22 @@ function getSalaryAdjustmentData(url){
   //push columm headers onto the array
   dataDetails.push(["Franchise ID", "Player", "Current Salary", "Contract Year", "Contract Length"]);
  
-  //this is some witch craft I made up because MFL does not normalize the data for the description of the adjustment.  e.g., salary, contract info, length, and current year.  Our league uses this data for as a cap penalay carryover to the next year, if the player dropped was under contract.
+  //this is some witch craft I made up because MFL does not normalize the data for the description of the adjustment.  e.g., salary, contract info, length, and current year.  Our league uses this data for as a cap penalty carryover to the next season, if the player dropped was under contract.
   for(var i=0; i<json.salaryAdjustments.salaryAdjustment.length; i++){
 
     var descr = json.salaryAdjustments.salaryAdjustment[i].description;
     var franchiseId = json.salaryAdjustments.salaryAdjustment[i].franchise_id;
     
+    //we are going to parse the shit out of descr, and it's going to be raw and ugly and will one day break.  I obviously don't have a good grasp on regex :-)
     if (descr){
-      //we only need to process the salary adjustments that the 2017 site proceesed throughout the year, these will always end in a ")"
+      //we only need to process the salary adjustments that the site automaticaly proceesed throughout the year, these will always end in a ")" (convention)
       if (descr.indexOf(")")>-1){
         
+       //there will also always be a "(" in the description, to it's left will be the player "name".
        var player = descr.split("(");
-       //Logger.log("Player Name "+player[0]);
        playerName = player[0];
-        
+       
+       //to the right side of player is where the witch craft starts.
        player = player[1].substring(0, player[1].length-1);
          
        var valArray = player.split(",");
@@ -314,8 +249,8 @@ function getSalaryAdjustmentData(url){
        if (valArray.length == 2) {
        
          salary = valArray[0].split(":");
+         //need to drop leading space and dollar sign
          stripSalary = salary[1].substring(2);
-         //Logger.log(stripSalary);
          currentContractYear = valArray[1].split(":");
 	
          dataDetails.push([franchiseId, playerName, parseFloat(stripSalary,100.00), parseInt(currentContractYear[1],10),1]);
@@ -327,7 +262,6 @@ function getSalaryAdjustmentData(url){
          
          salary = valArray[0].split(":");
          stripSalary = salary[1].substring(2);
-         //Logger.log(stripSalary);
          currentContractYear = valArray[1].split(":");
          contractLength = valArray[2].split(":");
          
@@ -339,7 +273,6 @@ function getSalaryAdjustmentData(url){
        
          salary = valArray[0].split(":");
          stripSalary = salary[1].substring(2);
-         //Logger.log(stripSalary);
          currentContractYear = valArray[2].split(":");
          
          dataDetails.push([franchiseId, playerName, parseFloat(stripSalary,100.00), parseInt(currentContractYear[1],10), 1]);     
@@ -350,7 +283,6 @@ function getSalaryAdjustmentData(url){
        
          salary = valArray[0].split(":");
          stripSalary = salary[1].substring(2);
-         //Logger.log(stripSalary);
          currentContractYear = valArray[2].split(":");
          contractLength = valArray[3].split(":");
         
@@ -358,7 +290,8 @@ function getSalaryAdjustmentData(url){
          
        }
        
-        
+       //end witch craft, it's not witch craft because it's anything hard, just unconventional.
+       
       }
     
     }
@@ -419,8 +352,41 @@ function getSalaryAdjustmentData(url){
   cell.setNumberFormat("00.00");
   
   //hiding id column
-  sheet.hideColumns(2);
+  sheet.hideColumns(2);  
+}
+
+function retrieveJsonData_(url){
+  var res = UrlFetchApp.fetch(url);
+  var content = res.getContentText();
+  var json = JSON.parse(content);
   
-  Logger.log("funcEnd");
-  
+  return json;
+}
+
+function getAllData_(){
+  getAllPlayerData("https://www75.myfantasyleague.com/2018/export?TYPE=players&DETAILS=&SINCE=&PLAYERS=&JSON=1");
+  getFreeAgentData("http://www76.myfantasyleague.com/2018/export?TYPE=freeAgents&L=42427&APIKEY=&POSITION=&JSON=1");
+  getLeagueData("http://www76.myfantasyleague.com/2018/export?TYPE=league&L=42427&APIKEY=&JSON=1");
+  getRosterData("http://www76.myfantasyleague.com/2018/export?TYPE=rosters&L=42427&APIKEY=&FRANCHISE=&JSON=1");
+  getSalaryAdjustmentData("http://www76.myfantasyleague.com/2017/export?TYPE=salaryAdjustments&L=42427&APIKEY=&JSON=1");
+}
+
+function getRosterData_(){
+  getRosterData("http://www76.myfantasyleague.com/2018/export?TYPE=rosters&L=42427&APIKEY=&FRANCHISE=&JSON=1");
+}
+
+function getLeagueData_(){
+  getLeagueData("http://www76.myfantasyleague.com/2018/export?TYPE=league&L=42427&APIKEY=&JSON=1"); 
+}
+
+function getFreeAgentData_(){
+   getFreeAgentData("http://www76.myfantasyleague.com/2018/export?TYPE=freeAgents&L=42427&APIKEY=&POSITION=&JSON=1");
+}
+
+function getAllPlayerData_(){
+   getAllPlayerData("https://www75.myfantasyleague.com/2018/export?TYPE=players&DETAILS=&SINCE=&PLAYERS=&JSON=1");
+}
+
+function getSalaryAdjustmentData_(){
+  getSalaryAdjustmentData("http://www76.myfantasyleague.com/2017/export?TYPE=salaryAdjustments&L=42427&APIKEY=&JSON=1");
 }
