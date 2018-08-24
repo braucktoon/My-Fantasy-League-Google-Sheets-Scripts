@@ -10,6 +10,8 @@ function onOpen() {
     {name: 'Retrieve Free Agent Data', functionName: 'getFreeAgentData_'},
     {name: 'Retrieve All Player Data', functionName: 'getAllPlayerData_'},
     {name: 'Retrieve Salary Adjustment Data', functionName: 'getSalaryAdjustmentData_'},
+    {name: 'Retrieve Player Scores Data', functionName: 'getPlayerScoresData_'},
+    {name: 'Retrieve NFL Bye Week Data', functionName: 'getNFLByeWeekData_'},
     {name: 'Retrieve All Data', functionName: 'getAllData_'},   
   ];
   spreadsheet.addMenu('MFL', menuItems);
@@ -47,7 +49,7 @@ function getRosterData(url){
   
   var sheet = SpreadsheetApp.getActive().getSheetByName("Rosters");
   //setting range in sheet with sepecific coordinate because functions will set in the sheet in other columns below
-  var range = sheet.getRange(1,5,data.length, data[0].length);
+  var range = sheet.getRange(1,6,data.length, data[0].length);
   sheet.setActiveRange(range).setValues(data);
   
   //set franchise name column header
@@ -55,32 +57,39 @@ function getRosterData(url){
   cell.setValue("Franchise Name");
   //set Player name column formula
   var cell = sheet.getRange(2,1,data.length-1,1);
-  cell.setFormula("=VLOOKUP(E2,'Bid Sheet'!$C$2:$D$11,2, FALSE)");
+  cell.setFormula("=VLOOKUP(F2,'Bid Sheet'!$C$2:$D$11,2, FALSE)");
   
   //se team column header
   var cell = sheet.getRange("B1");
   cell.setValue("Player Name");
   //set team column formula
   var cell = sheet.getRange(2,2,data.length-1,1);
-  cell.setFormula("=VLOOKUP(F2,AllPlayers!$A:$D,2, FALSE)");
+  cell.setFormula("=VLOOKUP(G2,AllPlayers!$A:$D,2, FALSE)");
   
   //set Position column header
   var cell = sheet.getRange("C1");
   cell.setValue("Team");
   //set Position column formula
   var cell = sheet.getRange(2,3,data.length-1,1);
-  cell.setFormula("=VLOOKUP(F2,AllPlayers!$A:$D,4, FALSE)");
+  cell.setFormula("=VLOOKUP(G2,AllPlayers!$A:$D,4, FALSE)");
   
   //set Full Player Info column header
   var cell = sheet.getRange("D1");
   cell.setValue("Position");
   //set Full Player Info column formula
   var cell = sheet.getRange(2,4,data.length-1,1);
-  cell.setFormula("=VLOOKUP(F2,AllPlayers!$A:$D,3, FALSE)");
+  cell.setFormula("=VLOOKUP(G2,AllPlayers!$A:$D,3, FALSE)");
   
+  //set Bye week column header
+  var cell = sheet.getRange("E1");
+  cell.setValue("Bye week");
+  //set byeweek column formula
+  var cell = sheet.getRange(2,5,data.length-1,1);
+  cell.setFormula("=iferror(VLOOKUP(C2,'NFL Bye Weeks'!$A:$B,2,FALSE))");
+
   //hiding id columns
-  sheet.hideColumns(5);
-  sheet.hideColumns(6);  
+  sheet.hideColumns(6);
+  sheet.hideColumns(7);  
 }
 
 /**
@@ -138,7 +147,7 @@ function getFreeAgentData(url){
   
   data = dataDetails;
  
-  var sheet = SpreadsheetApp.getActive().getSheetByName("FreeAgents");
+  var sheet = SpreadsheetApp.getActive().getSheetByName("Free Agents");
   //setting specific range for salary adjusment data as formulas will be set to other columns below.
   var range = sheet.getRange(1,1,data.length, data[0].length);
   sheet.setActiveRange(range).setValues(data);
@@ -171,8 +180,32 @@ function getFreeAgentData(url){
   var cell = sheet.getRange(2,5,data.length-1,1);
   cell.setFormula("=CONCATENATE(B2, \" \", C2, \" \", D2)");
   
+  //set Full Player score column header
+  var cell = sheet.getRange("F1");
+  cell.setValue("Last YTD points");
+  //set Full Player score column formula
+  var cell = sheet.getRange(2,6,data.length-1,1);
+  cell.setFormula("=iferror(VLOOKUP(A2,'Free Agent Scores'!A:B, 2, FALSE),0)");
+  
+  //set NFL Bye week column header
+  var cell = sheet.getRange("G1");
+  cell.setValue("Bye week");
+  //set Full Player score column formula
+  var cell = sheet.getRange(2,7,data.length-1,1);
+  cell.setFormula("=iferror(vlookup(C2,'NFL Bye Weeks'!$A:$B,2, FALSE))");
+  
+  //set Full Player score column header
+  var cell = sheet.getRange("H1");
+  cell.setValue("Status");
+  //set Full Player score column formula
+  var cell = sheet.getRange(2,8,data.length-1,1);
+  cell.setFormula("=IF(COUNTIF('Bid Sheet'!A:A,E2)+COUNTIF('Rookie Draft'!E:E,E2)>0,\"Not Available\",\"Available\")");
+  
   //hiding id column
-  sheet.hideColumns(1);    
+  sheet.hideColumns(1);
+  //hiding available column
+  sheet.hideColumns(8);
+  sheet.sort(6, false);
 }
 
 /**
@@ -355,6 +388,59 @@ function getSalaryAdjustmentData(url){
   sheet.hideColumns(2);  
 }
 
+/**
+* Imports free agent player scores (player id, YTD points) data from MFL to your spreadsheet Ex: getPlayerScoresData("http://www76.myfantasyleague.com/2018/export?TYPE=playerScores&L=42427&W=YTD&YEAR=2017&PLAYERS=&POSITION=&STATUS=freeagent&RULES=1&COUNT=&JSON=1")
+* @param url of your JSON data as string, note, specify previous season.
+*/
+function getPlayerScoresData(url){
+
+  var json = retrieveJsonData_(url);
+  var data = [];
+  var dataDetails = [];
+  
+  //push columm headers onto the array
+  dataDetails.push(["Player Id", "Last YTD points"]);
+ 
+  for(var i=0; i<json.playerScores.playerScore.length; i++){
+  
+    dataDetails.push([json.playerScores.playerScore[i].id, json.playerScores.playerScore[i].score]);
+    
+  }
+  
+  data = dataDetails;
+  
+  var sheet = SpreadsheetApp.getActive().getSheetByName("Free Agent Scores");
+  var range = sheet.getRange(1,1,data.length, data[0].length);
+  sheet.setActiveRange(range).setValues(data);
+  
+}
+
+/**
+* Imports NFL Bye week data from MFL to your spreadsheet Ex: getNFLByeWeekData("https://www70.myfantasyleague.com/2018/export?TYPE=nflByeWeeks&W=&JSON=1")
+* @param url of your JSON data as string, note, specify previous season.
+*/
+function getNFLByeWeekData(url){
+
+  var json = retrieveJsonData_(url);
+  var data = [];
+  var dataDetails = [];
+  
+  //push columm headers onto the array
+  dataDetails.push(["NFL team id", "Bye week"]);
+ 
+  for(var i=0; i<json.nflByeWeeks.team.length; i++){
+  
+    dataDetails.push([json.nflByeWeeks.team[i].id, json.nflByeWeeks.team[i].bye_week]);
+    
+  }
+  
+  data = dataDetails;
+  
+  var sheet = SpreadsheetApp.getActive().getSheetByName("NFL Bye Weeks");
+  var range = sheet.getRange(1,1,data.length, data[0].length);
+  sheet.setActiveRange(range).setValues(data);
+}
+
 function retrieveJsonData_(url){
   var res = UrlFetchApp.fetch(url);
   var content = res.getContentText();
@@ -369,6 +455,8 @@ function getAllData_(){
   getLeagueData("http://www76.myfantasyleague.com/2018/export?TYPE=league&L=42427&APIKEY=&JSON=1");
   getRosterData("http://www76.myfantasyleague.com/2018/export?TYPE=rosters&L=42427&APIKEY=&FRANCHISE=&JSON=1");
   getSalaryAdjustmentData("http://www76.myfantasyleague.com/2017/export?TYPE=salaryAdjustments&L=42427&APIKEY=&JSON=1");
+  getPlayerScoresData("http://www76.myfantasyleague.com/2018/export?TYPE=playerScores&L=42427&W=YTD&YEAR=2017&PLAYERS=&POSITION=&STATUS=freeagent&RULES=1&COUNT=&JSON=1");
+  getNFLByeWeekData("https://www70.myfantasyleague.com/2018/export?TYPE=nflByeWeeks&W=&JSON=1");
 }
 
 function getRosterData_(){
@@ -389,4 +477,12 @@ function getAllPlayerData_(){
 
 function getSalaryAdjustmentData_(){
   getSalaryAdjustmentData("http://www76.myfantasyleague.com/2017/export?TYPE=salaryAdjustments&L=42427&APIKEY=&JSON=1");
+}
+
+function getPlayerScoresData_(){
+  getPlayerScoresData("http://www76.myfantasyleague.com/2018/export?TYPE=playerScores&L=42427&W=YTD&YEAR=2017&PLAYERS=&POSITION=&STATUS=freeagent&RULES=1&COUNT=&JSON=1");
+}
+
+function getNFLByeWeekData_(){
+  getNFLByeWeekData("https://www70.myfantasyleague.com/2018/export?TYPE=nflByeWeeks&W=&JSON=1");
 }
